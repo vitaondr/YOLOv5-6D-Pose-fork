@@ -270,7 +270,6 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         wandb.watch(model, log_freq=1)
 
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
-
         model.train()
         mloss = torch.zeros(3, device=device)  # mean losses
 
