@@ -10,7 +10,7 @@ tr_range: ../data/LINEMOD/cat/training_range.txt
 backup : ../backup/cat
 names : ["cat"]
 
-background_path: "../data/VOCdevkit/VOC2012/JPEGImages"
+# background_path: "../data/VOCdevkit/VOC2012/JPEGImages"
 coords: 18
 
 diam : 0.155
