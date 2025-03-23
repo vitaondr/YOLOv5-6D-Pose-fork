@@ -684,7 +684,8 @@ class LoadImagesAndLabelsPose(Dataset):  # for training/testing
 
         # Augment background
         if self.augment: 
-            mask = cv2.imread(self.masks[index])
+            # problematic img read
+            mask = cv2.imread(self.masks[index]) ####################################################################################################
             if hyp['background'] and self.bg_file_names is not None and self.masks[index] != None:
 
                     if random.random() < hyp['background']:
