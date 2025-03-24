@@ -13,6 +13,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
+from time import sleep
 
 import cv2
 import numpy as np
@@ -542,7 +543,6 @@ class LoadImagesAndLabelsPose(Dataset):  # for training/testing
         # Read cache
         cache.pop('hash')  # remove hash
         cache.pop('version')  # remove version
-
         labels, masks, shapes = zip(*cache.values())
 
         self.labels = list(labels)
@@ -685,6 +685,7 @@ class LoadImagesAndLabelsPose(Dataset):  # for training/testing
         # Augment background
         if self.augment: 
             # problematic img read
+            
             mask = cv2.imread(self.masks[index]) ####################################################################################################
             if hyp['background'] and self.bg_file_names is not None and self.masks[index] != None:
 
