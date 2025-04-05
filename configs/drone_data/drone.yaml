@@ -4,7 +4,7 @@ train: ../data/dataset_transformed/drone/train.txt
 val: ../data/dataset_transformed/drone/test.txt
 test: ../data/dataset_transformed/drone/test.txt
 
-mesh: ../data/dataset_transformed/drone/robofly.ply
+mesh: ../data/dataset_transformed/drone/drone.ply
 tr_range: ../data/dataset_transformed/drone/training_range.txt
 # backup : ../backup/benchvise
 names : ["drone"]
