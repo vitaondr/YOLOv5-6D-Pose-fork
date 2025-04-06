@@ -19,3 +19,11 @@ singularity exec --nv singularity.sif bash
 python3.9 train.py --batch 32 --epochs 5 --cfg models/yolov5s_6dpose_bifpn.yaml --hyp configs/hyp.single.yaml --weights ../data/weights/yolov5s.pt --data configs/drone_data/drone.yaml --rect --cache --optimizer Adam
 
 
+## this is how to strat a job 
+
+sbatch -n1 -o train_job.stdout cls_train.sh
+
+## look in the queue
+
+squeue
+
