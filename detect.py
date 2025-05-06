@@ -66,7 +66,7 @@ def detect(save_img=False):
     mesh       = MeshPly(mesh_data)
     vertices   = np.c_[np.array(mesh.vertices), np.ones((len(mesh.vertices), 1))].transpose()
     corners3D  = get_3D_corners(vertices)
-
+    print(corners3D)
     # edges_corners = [[0, 1], [0, 3], [0, 7], [1, 2], [1, 6], [2, 3], [2, 4], [3, 5], [4, 5], [4, 6], [5, 7], [6, 7]]
     edges_corners = [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]]
     colormap      = np.array(['r', 'g', 'b', 'c', 'm', 'y',  'k', 'w','xkcd:sky blue' ])
@@ -119,7 +119,7 @@ def detect(save_img=False):
                 box_predn = det[0, :18].clone().cpu()
                 # Denormalize the corner predictions 
                 corners2D_pr = np.array(np.reshape(box_predn, [9, 2]), dtype='float32')
-                # Calculate rotation and tranlation in rodriquez format
+                # Calculate rotation and translation in rodriquez format
                 R_pr, t_pr = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D[:3, :]), axis=1)), dtype='float32'),  corners2D_pr, np.array(internal_calibration, dtype='float32'))
                 pose_mat = cv2.hconcat((R_pr, t_pr))
                 euler_angles = cv2.decomposeProjectionMatrix(pose_mat)[6]

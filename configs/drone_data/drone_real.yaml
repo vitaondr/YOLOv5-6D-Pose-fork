@@ -1,0 +1,24 @@
+
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: ../data/real_dataset/drone/train.txt
+val: ../data/real_dataset/drone/test.txt
+test: ../data/real_dataset/drone/test.txt
+
+mesh: ../data/real_dataset/drone/drone.ply
+tr_range: ../data/real_dataset/drone/training_range.txt
+# backup : ../backup/benchvise
+names : ["drone"]
+
+# background_path: "../data/VOCdevkit/VOC2012/JPEGImages"
+coords: 18
+
+diam : 0.2
+gpus : 0
+
+nc: 1  # number of classes
+
+fx: 634.3493041992188
+fy: 633.2136840820312
+u0: 632.6194458007812
+v0: 364.7284851074219
+

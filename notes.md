@@ -27,3 +27,11 @@ sbatch -n1 -o train_job.stdout cls_train.sh
 
 squeue
 
+
+## watch if working 
+
+watch -n 0.5 "squeue | grep vitao"
+
+## watch progress 
+
+tail -f runs/cls_train/command1.out 
