@@ -154,12 +154,12 @@ def test(data, weights=None, batch_size=1,
     wandb_images = []
     count = 0
 
-    for batch_i, (img, targets, intrinsics, paths, shapes) in enumerate(tqdm(dataloader)):
+    for batch_i, (img, targets, intrinsics, paths, shapes, mesh_num) in enumerate(tqdm(dataloader)):
+        print("mesh on line 158: ", mesh_num)
         t = time_synchronized()
         img = img.to(device, non_blocking=True)
         img = img.float()  # uint8 to fp32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
-        print("target: ",targets)
         targets = targets.to(device)
         nb, _, height, width = img.shape  # batch size, channels, height, width
         with torch.no_grad():
@@ -196,7 +196,6 @@ def test(data, weights=None, batch_size=1,
                 predn = pred.clone().cpu()
                 scale_coords(img[si].shape[1:], predn[:, :18], shape, shapes[si][1])  # native-space pred
                 labels = targets[targets[:, 0] == si, 1:].cpu()
-                print(labels)
                 tbox = labels[: ,1:19]
                 tbox[:, ::2] = tbox[:, ::2]*width
                 tbox[:, 1::2] = tbox[:, 1::2]*height
