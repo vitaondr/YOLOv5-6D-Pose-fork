@@ -133,29 +133,32 @@ def test(data, weights=None, batch_size=1,
 
     # Iterate through folder with mesh files
     mesh_folder = Path(data['mesh'])  # mesh folder instead of single mesh
-    vertices_list = []
-    corners3D_list = []
-    diam_list = []
+    vertices_dic = {}
+    corners3D_dic = {}
     for mesh_file in mesh_folder.glob('*.ply'):  # Assuming mesh files have .ply extension
         mesh = MeshPly(str(mesh_file))
         #mesh       = MeshPly(data[f'mesh'])
         vertices   = np.c_[np.array(mesh.vertices), np.ones((len(mesh.vertices), 1))].transpose()
-        vertices_list.append(vertices)
+        vertices_dic[int(mesh_file.stem)] = vertices
         corners3D  = get_3D_corners(vertices)
-        corners3D_list.append(corners3D)
-        
-        try:
-            diam  = float(data['diam'])
-        except:
-            diam  = calc_pts_diameter(np.array(mesh.vertices))
-        
-        diam_list.append(diam)
+        corners3D_dic[int(mesh_file.stem)] = corners3D
 
+    
+    try:
+        diam  = float(data['diam'])
+    except:
+        diam = -1
+        for item in vertices_dic.items():
+            mesh = item[1]
+            temp_diam = calc_pts_diameter(np.array(mesh.vertices))
+            if temp_diam > diam:
+                diam = temp_diam
+    
+    
     wandb_images = []
     count = 0
 
     for batch_i, (img, targets, intrinsics, paths, shapes, mesh_num) in enumerate(tqdm(dataloader)):
-        print("mesh on line 158: ", mesh_num)
         t = time_synchronized()
         img = img.to(device, non_blocking=True)
         img = img.float()  # uint8 to fp32
@@ -227,11 +230,12 @@ def test(data, weights=None, batch_size=1,
 
                     u0, v0, fx, fy = intrinsics[k][4], intrinsics[k][5], intrinsics[k][0], intrinsics[k][1]
                     internal_calibration = get_camera_intrinsic(u0, v0, fx, fy)
-
+                    
+                    print("corners3D: ", corners3D_dic[mesh_num][:3, :])
                     # Compute [R|t] by pnp
-                    R_gt, t_gt = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D[:3, :]), axis=1)), dtype='float32'),  corners2D_gt, np.array(internal_calibration, dtype='float32'))
+                    R_gt, t_gt = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_gt, np.array(internal_calibration, dtype='float32'))
                     t_temp = time_synchronized()
-                    R_pr, t_pr = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D[:3, :]), axis=1)), dtype='float32'),  corners2D_pr, np.array(internal_calibration, dtype='float32'))
+                    R_pr, t_pr = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_pr, np.array(internal_calibration, dtype='float32'))
                     t6.append(time_synchronized() - t_temp)
 
                     # Compute errors
@@ -246,15 +250,15 @@ def test(data, weights=None, batch_size=1,
                     # Compute pixel error
                     Rt_gt        = np.concatenate((R_gt, t_gt), axis=1)
                     Rt_pr        = np.concatenate((R_pr, t_pr), axis=1)
-                    proj_2d_gt   = compute_projection(vertices, Rt_gt, internal_calibration) 
-                    proj_2d_pred = compute_projection(vertices, Rt_pr, internal_calibration) 
+                    proj_2d_gt   = compute_projection(vertices_dic[mesh_num], Rt_gt, internal_calibration) 
+                    proj_2d_pred = compute_projection(vertices_dic[mesh_num], Rt_pr, internal_calibration) 
                     norm         = np.linalg.norm(proj_2d_gt - proj_2d_pred, axis=0)
                     pixel_dist   = np.mean(norm)
                     errs_2d.append(pixel_dist)
 
                     # Compute 3D distances
-                    transform_3d_gt   = compute_transformation(vertices, Rt_gt) 
-                    transform_3d_pred = compute_transformation(vertices, Rt_pr)  
+                    transform_3d_gt   = compute_transformation(vertices_dic[mesh_num], Rt_gt) 
+                    transform_3d_pred = compute_transformation(vertices_dic[mesh_num], Rt_pr)  
                     if symetric:
                         norm3d         = wrapper_c_min_distances(transform_3d_gt, transform_3d_pred)
                     else:
@@ -352,7 +356,7 @@ def test(data, weights=None, batch_size=1,
     print("   Mean corner error is %f" % (mean_corner_err_2d))
     print('   Acc using {} px 2D Projection = {:.2f}%'.format(px_threshold, acc))
     print('   Acc using {} vx 3D Transformation = {:.2f}%'.format(vx_threshold, acc3d))
-    print('   Acc using 5 cm 5 degree metric = {:.2f}%'.format(acc10cm10deg))
+    print('   Acc using 10 cm 10 degree metric = {:.2f}%'.format(acc10cm10deg))
     print('   Translation error: %f, angle error: %f' % (testing_error_trans/(nts+eps), testing_error_angle/(nts+eps)) )
 
     # Register losses and errors for saving later on
