@@ -131,14 +131,25 @@ def test(data, weights=None, batch_size=1,
     # for mesh_id in range(8):
     #     mesh_list.append(MeshPly(data[f'mesh{mesh_id}']))
 
-    mesh       = MeshPly(data[f'mesh'])
-    vertices   = np.c_[np.array(mesh.vertices), np.ones((len(mesh.vertices), 1))].transpose()
-    corners3D  = get_3D_corners(vertices)
-
-    try:
-        diam  = float(data['diam'])
-    except:
-        diam  = calc_pts_diameter(np.array(mesh.vertices))
+    # Iterate through folder with mesh files
+    mesh_folder = Path(data['mesh'])  # mesh folder instead of single mesh
+    vertices_list = []
+    corners3D_list = []
+    diam_list = []
+    for mesh_file in mesh_folder.glob('*.ply'):  # Assuming mesh files have .ply extension
+        mesh = MeshPly(str(mesh_file))
+        #mesh       = MeshPly(data[f'mesh'])
+        vertices   = np.c_[np.array(mesh.vertices), np.ones((len(mesh.vertices), 1))].transpose()
+        vertices_list.append(vertices)
+        corners3D  = get_3D_corners(vertices)
+        corners3D_list.append(corners3D)
+        
+        try:
+            diam  = float(data['diam'])
+        except:
+            diam  = calc_pts_diameter(np.array(mesh.vertices))
+        
+        diam_list.append(diam)
 
     wandb_images = []
     count = 0
@@ -148,7 +159,7 @@ def test(data, weights=None, batch_size=1,
         img = img.to(device, non_blocking=True)
         img = img.float()  # uint8 to fp32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
-        
+        print("target: ",targets)
         targets = targets.to(device)
         nb, _, height, width = img.shape  # batch size, channels, height, width
         with torch.no_grad():
@@ -185,6 +196,7 @@ def test(data, weights=None, batch_size=1,
                 predn = pred.clone().cpu()
                 scale_coords(img[si].shape[1:], predn[:, :18], shape, shapes[si][1])  # native-space pred
                 labels = targets[targets[:, 0] == si, 1:].cpu()
+                print(labels)
                 tbox = labels[: ,1:19]
                 tbox[:, ::2] = tbox[:, ::2]*width
                 tbox[:, 1::2] = tbox[:, 1::2]*height
