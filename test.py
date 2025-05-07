@@ -311,8 +311,8 @@ def test(data, weights=None, batch_size=1,
     acc          = acc_value * 100. / (len(errs_2d)+eps) 
     acc3d_value  = len(np.where(np.array(errs_3d) <= vx_threshold)[0]) 
     acc3d        = acc3d_value * 100. / (len(errs_3d)+eps) 
-    acc5cm5deg_value   = len(np.where((np.array(errs_trans) <= 0.05) & (np.array(errs_angle) <= 5))[0]) 
-    acc5cm5deg   = acc5cm5deg_value* 100. / (len(errs_trans)+eps)
+    acc10cm10deg_value   = len(np.where((np.array(errs_trans) <= 0.1) & (np.array(errs_angle) <= 10))[0]) 
+    acc10cm10deg   = acc10cm10deg_value* 100. / (len(errs_trans)+eps)
     corner_acc   = len(np.where(np.array(errs_corner2D) <= px_threshold)[0]) * 100. / (len(errs_corner2D)+eps)
     mean_err_2d  = np.mean(errs_2d)
     mean_corner_err_2d = np.mean(errs_corner2D)
@@ -341,7 +341,7 @@ def test(data, weights=None, batch_size=1,
     print("   Mean corner error is %f" % (mean_corner_err_2d))
     print('   Acc using {} px 2D Projection = {:.2f}%'.format(px_threshold, acc))
     print('   Acc using {} vx 3D Transformation = {:.2f}%'.format(vx_threshold, acc3d))
-    print('   Acc using 5 cm 5 degree metric = {:.2f}%'.format(acc5cm5deg))
+    print('   Acc using 5 cm 5 degree metric = {:.2f}%'.format(acc10cm10deg))
     print('   Translation error: %f, angle error: %f' % (testing_error_trans/(nts+eps), testing_error_angle/(nts+eps)) )
 
     # Register losses and errors for saving later on
@@ -357,7 +357,7 @@ def test(data, weights=None, batch_size=1,
         if wandb and wandb.run:
             wandb.log({"Images": wandb_images})
 
-    return (mean_corner_err_2d, acc, acc3d, acc5cm5deg, *(loss_items.cpu().detach()/ len(dataloader)).tolist(), loss.cpu().numpy().item())
+    return (mean_corner_err_2d, acc, acc3d, acc10cm10deg, *(loss_items.cpu().detach()/ len(dataloader)).tolist(), loss.cpu().numpy().item())
 
 
 if __name__ == '__main__':
