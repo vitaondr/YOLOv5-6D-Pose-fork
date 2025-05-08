@@ -357,9 +357,9 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
 
         # Log
         train_tags = ['train/obj_loss', 'train/box_loss', 'train/cls_loss',  # train loss
-                        'x/lr0', 'x/lr1', 'x/lr2', 'train/mean_loss', 'epoch']  # params
+                        'x/lr0', 'x/lr1', 'x/lr2', 'train/mean_loss']  # params
 
-        for x, tag in zip(list(mloss) + lr + [train_mean_loss, epoch], train_tags):
+        for x, tag in zip(list(mloss) + lr + [train_mean_loss], train_tags):
             if tb_writer:
                 tb_writer.add_scalar(tag, x, epoch)  # tensorboard
 
@@ -394,9 +394,9 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                 
                 # Log
                 val_tags = ['val/mean_corner_err_2d', 'val/acc', 'val/acc3d', 'val/acc10cm10deg', # val metrics
-                         'val/obj_loss', 'val/box_loss', 'val/cls_loss','val/mean_loss', 'val/total_loss', 'epoch']  # val loss  
+                         'val/obj_loss', 'val/box_loss', 'val/cls_loss','val/mean_loss', 'val/total_loss']  # val loss  
                 
-                for x, tag in zip(list(results) + [epoch], val_tags):
+                for x, tag in zip(list(results), val_tags):
 
                     if tb_writer:
                         tb_writer.add_scalar(tag, x, epoch)  # tensorboard
