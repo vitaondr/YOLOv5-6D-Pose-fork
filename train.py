@@ -34,7 +34,7 @@ from utils.general import labels_to_class_weights, increment_path, init_seeds, \
         print_mutation, set_logging, one_cycle, colorstr
 from utils.google_utils import attempt_download
 from utils.loss import PoseLoss
-from utils.plots import plot_results, plot_evolution
+from utils.plots import plot_results, plot_evolution, plot_results_overlay
 from utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first, is_parallel
 from utils.pose_utils import get_all_files
 from lion_pytorch import Lion
@@ -285,7 +285,10 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
 
         optimizer.zero_grad()
 
-        for i, (imgs, targets, intrinsics, paths, _) in pbar:  # batch -------------------------------------------------------------
+        train_total_loss = torch.zeros(1, device=device, requires_grad=False) # to get comparison to val total loss
+        num_batches = torch.zeros(1, device=device, requires_grad=False) # to get comparison to val total loss
+        train_mean_loss = torch.zeros(1, device=device, requires_grad=False) # to get comparison to val total loss
+        for i, (imgs, targets, intrinsics, paths, _, _) in pbar:  # batch -------------------------------------------------------------
             ni = i + nb * epoch  # number integrated batches (since train start)
 
             imgs = imgs.to(device, non_blocking=True).float() / 255.0  # uint8 to float32, 0-255 to 0.0-1.0
@@ -321,6 +324,8 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
             with amp.autocast(enabled=cuda):
                 pred = model(imgs)  # forward
                 loss, loss_items = pose_loss(pred, targets.to(device), epoch)  # loss
+                train_total_loss += loss
+                
             # Backward
             scaler.scale(loss).backward()
 
@@ -341,9 +346,10 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                     '%g/%g' % (epoch, epochs - 1), mem, *mloss, targets.shape[0], imgs.shape[-1])
                 pbar.set_description(s)
             
+            num_batches += 1
             # end batch ------------------------------------------------------------------------------------------------
         # end epoch ----------------------------------------------------------------------------------------------------
-
+        train_mean_loss = train_total_loss / num_batches
         # Scheduler
         lr = [x['lr'] for x in optimizer.param_groups]  # for tensorboard
         if not opt.standard_lr:
@@ -351,14 +357,14 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
 
         # Log
         train_tags = ['train/obj_loss', 'train/box_loss', 'train/cls_loss',  # train loss
-                        'x/lr0', 'x/lr1', 'x/lr2']  # params
+                        'x/lr0', 'x/lr1', 'x/lr2', 'train/mean_loss', 'epoch']  # params
 
-        for x, tag in zip(list(mloss) + lr, train_tags):
+        for x, tag in zip(list(mloss) + lr + [train_mean_loss, epoch], train_tags):
             if tb_writer:
                 tb_writer.add_scalar(tag, x, epoch)  # tensorboard
 
             if wandb:
-                wandb.log({tag: x})  # W&B
+                wandb.log({tag: x}, step=epoch)  # W&B
 
         # DDP process 0 or single-GPU
         if rank in [-1, 0]:
@@ -383,19 +389,19 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                 print(results)
                 # Write
                 with open(results_file, 'a') as f:
-                    f.write(s + '%10.4g' * 8 % results + '\n')  # append metrics, val_loss
+                    f.write(s + '%10.4g' * len(results) % results + '\n')  # append metrics, val_loss
 
                 
                 # Log
                 val_tags = ['val/mean_corner_err_2d', 'val/acc', 'val/acc3d', 'val/acc10cm10deg', # val metrics
-                         'val/obj_loss', 'val/box_loss', 'val/cls_loss', 'val/total_loss']  # val loss  
+                         'val/obj_loss', 'val/box_loss', 'val/cls_loss','val/mean_loss', 'val/total_loss', 'epoch']  # val loss  
                 
-                for x, tag in zip(list(results), val_tags):
+                for x, tag in zip(list(results) + [epoch], val_tags):
 
                     if tb_writer:
                         tb_writer.add_scalar(tag, x, epoch)  # tensorboard
                     if wandb:
-                        wandb.log({tag: x})  # W&B
+                        wandb.log({tag: x}, step=epoch)  # W&B
                 # Update best
                 fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of  [mean_corner_err_2d, acc, acc3d, acc10cm10deg]
                 if fi > best_fitness:

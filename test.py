@@ -112,6 +112,7 @@ def test(data, weights=None, batch_size=1,
 
     # Dataloader
     if not training:
+        print("task: " ,opt.task)
         if device.type != 'cpu':
             model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
         path = data['test'] if opt.task == 'test' else data['val']  # path to val/test images
@@ -157,7 +158,7 @@ def test(data, weights=None, batch_size=1,
     
     wandb_images = []
     count = 0
-
+    batch_count = 0
     for batch_i, (img, targets, intrinsics, paths, shapes, mesh_num) in enumerate(tqdm(dataloader)):
         t = time_synchronized()
         img = img.to(device, non_blocking=True)
@@ -179,7 +180,7 @@ def test(data, weights=None, batch_size=1,
                 batch_loss, batch_loss_items = pose_loss([x.float() for x in train_out], targets)
                 loss_items += batch_loss_items  
                 loss += batch_loss
-
+            batch_count += 1
             t3.append(time_synchronized() - t)
 
             # Using confidence threshold, eliminate low-confidence predictions
@@ -371,7 +372,18 @@ def test(data, weights=None, batch_size=1,
         if wandb and wandb.run:
             wandb.log({"Images": wandb_images})
 
-    return (mean_corner_err_2d, acc, acc3d, acc10cm10deg, *(loss_items.cpu().detach()/ len(dataloader)).tolist(), loss.cpu().numpy().item())
+    if not training and save_txt:
+        # Save results to results.txt
+        results_path = save_dir / 'results.txt'
+        with open(results_path, 'w') as f:
+            f.write(f"Mean corner error: {mean_corner_err_2d}\n")
+            f.write(f"Accuracy (2D Projection, {px_threshold}px): {acc:.2f}%\n")
+            f.write(f"Accuracy (3D Transformation, {vx_threshold}vx): {acc3d:.2f}%\n")
+            f.write(f"Accuracy (10cm 10° metric): {acc10cm10deg:.2f}%\n")
+            f.write(f"Translation error: {testing_error_trans / (nts + eps):.6f}\n")
+            f.write(f"Angle error: {testing_error_angle / (nts + eps):.6f}\n")
+
+    return (mean_corner_err_2d, acc, acc3d, acc10cm10deg, *(loss_items.cpu().detach()/ len(dataloader)).tolist(), (loss/batch_count).cpu().numpy().item(), loss.cpu().numpy().item())
 
 
 if __name__ == '__main__':
