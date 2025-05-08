@@ -231,7 +231,6 @@ def test(data, weights=None, batch_size=1,
                     u0, v0, fx, fy = intrinsics[k][4], intrinsics[k][5], intrinsics[k][0], intrinsics[k][1]
                     internal_calibration = get_camera_intrinsic(u0, v0, fx, fy)
                     
-                    print("corners3D: ", corners3D_dic[mesh_num][:3, :])
                     # Compute [R|t] by pnp
                     R_gt, t_gt = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_gt, np.array(internal_calibration, dtype='float32'))
                     t_temp = time_synchronized()
