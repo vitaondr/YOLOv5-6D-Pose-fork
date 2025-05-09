@@ -1,7 +1,7 @@
 
 import torch
 
-path = "runs/train/exp23/weights/best.pt"
+path = "runs/train/exp4/weights/last.pt"
 
 checkpoint = torch.load(path)
 

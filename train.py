@@ -412,7 +412,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                     scheduler.step(list(results)[-1])
                 # Save model
                 if (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
-                    
+                    print("control print, when saving, epoch, last_path, best_path", epoch, last, best)
                     ckpt = {'epoch': epoch,
                             'best_fitness': best_fitness,
                             'training_results': results_file.read_text(),
@@ -428,6 +428,8 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                         print(f"Saving best model with fitness: {fi}")
                         torch.save(ckpt, best)
                     del ckpt
+                    new_ckpt = torch.load(last)
+                    print("reload checkpoint", new_ckpt.get("epoch"))
 
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training

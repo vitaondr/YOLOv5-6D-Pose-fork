@@ -8,10 +8,10 @@
 #SBATCH --gres=gpu:1		                                    		# generic consumable resources, see https://slurm.schedmd.com/sbatch.html
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=30GB
-#SBATCH --partition=gpufast						                      	# partition name
+#SBATCH --partition=gpulong						                      	# partition name
 #SBATCH --output=YOLOv5-6D-Pose-fork/runs/cls_train/yolo6D_train.out   		    # standard output file
 #SBATCH --error=YOLOv5-6D-Pose-fork/runs/cls_train/yolo6D_train.out    		    # standard error file
-#SBATCH --time=4:00:00							                        # time limit
+#SBATCH --time=60:00:00							                        # time limit
 
 PATH_TO_YOLO6D="$HOME/YOLOv5-6D-Pose-fork"
 PATH_TO_YOLO6D_IMG="$HOME/YOLOv5-6D-Pose-fork/singularity.sif"
