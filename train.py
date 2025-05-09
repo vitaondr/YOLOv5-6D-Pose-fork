@@ -357,14 +357,14 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
 
         # Log
         train_tags = ['train/obj_loss', 'train/box_loss', 'train/cls_loss',  # train loss
-                        'x/lr0', 'x/lr1', 'x/lr2', 'train/mean_loss']  # params
+                        'x/lr0', 'x/lr1', 'x/lr2', 'train/mean_loss', 'epoch']  # params
 
-        for x, tag in zip(list(mloss) + lr + [train_mean_loss], train_tags):
+        for x, tag in zip(list(mloss) + lr + [train_mean_loss, epoch], train_tags):
             if tb_writer:
                 tb_writer.add_scalar(tag, x, epoch)  # tensorboard
 
             if wandb:
-                wandb.log({tag: x}, step=epoch)  # W&B
+                wandb.log({tag: x})  # W&B
 
         # DDP process 0 or single-GPU
         if rank in [-1, 0]:
@@ -401,7 +401,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
                     if tb_writer:
                         tb_writer.add_scalar(tag, x, epoch)  # tensorboard
                     if wandb:
-                        wandb.log({tag: x}, step=epoch)  # W&B
+                        wandb.log({tag: x})  # W&B
                 # Update best
                 fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of  [mean_corner_err_2d, acc, acc3d, acc10cm10deg]
                 if fi > best_fitness:
