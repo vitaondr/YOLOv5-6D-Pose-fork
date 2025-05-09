@@ -16,7 +16,8 @@
 PATH_TO_YOLO6D="$HOME/YOLOv5-6D-Pose-fork"
 PATH_TO_YOLO6D_IMG="$HOME/YOLOv5-6D-Pose-fork/singularity.sif"
 
-COMMAND1="$PATH_TO_YOLO6D/train.sh"
+# COMMAND1="$PATH_TO_YOLO6D/train.sh"
+COMMAND1="$PATH_TO_YOLO6D/train_real.sh"
 COMMAND1_OUT="$PATH_TO_YOLO6D/runs/cls_train/command1.out"
 
 echo "running batch job"
