@@ -288,7 +288,7 @@ def train(hyp, opt, device, tb_writer=None, wandb=None):
         train_total_loss = torch.zeros(1, device=device, requires_grad=False) # to get comparison to val total loss
         num_batches = torch.zeros(1, device=device, requires_grad=False) # to get comparison to val total loss
         train_mean_loss = torch.zeros(1, device=device, requires_grad=False) # to get comparison to val total loss
-        for i, (imgs, targets, intrinsics, paths, _, _) in pbar:  # batch -------------------------------------------------------------
+        for i, (imgs, targets, intrinsics, paths, _, _, _, _) in pbar:  # batch -------------------------------------------------------------
             ni = i + nb * epoch  # number integrated batches (since train start)
 
             imgs = imgs.to(device, non_blocking=True).float() / 255.0  # uint8 to float32, 0-255 to 0.0-1.0

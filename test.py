@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from threading import Thread
 from datetime import datetime
+import cv2
 
 import numpy as np
 import torch
@@ -158,7 +159,7 @@ def test(data, weights=None, batch_size=1,
     wandb_images = []
     count = 0
     batch_count = 0
-    for batch_i, (img, targets, intrinsics, paths, shapes, mesh_num) in enumerate(tqdm(dataloader)):
+    for batch_i, (img, targets, intrinsics, paths, shapes, mesh_num, rvec, tvec) in enumerate(tqdm(dataloader)):
         t = time_synchronized()
         img = img.to(device, non_blocking=True)
         img = img.float()  # uint8 to fp32
@@ -233,6 +234,8 @@ def test(data, weights=None, batch_size=1,
                     
                     # Compute [R|t] by pnp
                     R_gt, t_gt = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_gt, np.array(internal_calibration, dtype='float32'))
+                    R_gt, _ = cv2.Rodrigues(rvec)
+                    t_gt = tvec
                     t_temp = time_synchronized()
                     R_pr, t_pr = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_pr, np.array(internal_calibration, dtype='float32'))
                     t6.append(time_synchronized() - t_temp)

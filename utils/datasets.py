@@ -781,20 +781,26 @@ class LoadImagesAndLabelsPose(Dataset):  # for training/testing
             labels_out[:, 1:] = torch.from_numpy(labels[:, :21])
             intrinics[:, :] = torch.from_numpy(labels[:, 21:27])
 
+        # added to accompany drone dataset
         mesh_num = labels[:, 29][0]
+        rvec = labels[:, 30:33]
+        tvec = labels[:, 33:36]
+
         # Convert
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB
         img = np.ascontiguousarray(img)
-        return torch.from_numpy(img), labels_out, intrinics, self.img_files[index], shapes, mesh_num
+        return torch.from_numpy(img), labels_out, intrinics, self.img_files[index], shapes, mesh_num, rvec, tvec
 
     @staticmethod
     def collate_fn(batch):
-        img, label, intrinics, path, shapes, mesh_num = zip(*batch)  # transposed
+        img, label, intrinics, path, shapes, mesh_num, rvec, tvec = zip(*batch)  # transposed
         for i, l in enumerate(label):
             l[:, 0] = i  # add target image index for build_targets()
             # intrinics[i][:, 0] = i
         mesh_num = mesh_num[0]
-        return torch.stack(img, 0), torch.cat(label, 0), torch.cat(intrinics, 0), path, shapes, mesh_num
+        rvec = rvec[0].flatten()
+        tvec = tvec[0].flatten()
+        return torch.stack(img, 0), torch.cat(label, 0), torch.cat(intrinics, 0), path, shapes, mesh_num, rvec, tvec
 
 def xy_norm2xy_pix(x, w=640, h=640, padw=0, padh=0):
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
