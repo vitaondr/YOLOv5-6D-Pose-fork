@@ -112,7 +112,6 @@ def test(data, weights=None, batch_size=1,
 
     # Dataloader
     if not training:
-        print("task: " ,opt.task)
         if device.type != 'cpu':
             model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
         path = data['test'] if opt.task == 'test' else data['val']  # path to val/test images

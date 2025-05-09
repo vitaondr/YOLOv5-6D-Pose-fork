@@ -22,6 +22,7 @@ python3.9 train.py --batch 32 --epochs 5 --cfg models/yolov5s_6dpose_bifpn.yaml 
 ## this is how to strat a job 
 
 sbatch -n1 -o train_job.stdout cls_train.sh
+sbatch -n1 -o train_job.stdout cls_train_real.sh
 
 ## look in the queue
 
@@ -35,6 +36,9 @@ watch -n 0.5 "squeue | grep vitao"
 ## watch progress 
 
 tail -f runs/cls_train/command1.out 
+tail -f runs/cls_train/command1_real.out 
 
 
 ## to resume training, resume_training has to be modified and then played
+
+sbatch -n1 -o train_job.stdout resume_cls_train.sh
