@@ -233,9 +233,12 @@ def test(data, weights=None, batch_size=1,
                     internal_calibration = get_camera_intrinsic(u0, v0, fx, fy)
                     
                     # Compute [R|t] by pnp
-                    R_gt, t_gt = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_gt, np.array(internal_calibration, dtype='float32'))
+                    # R_gt, t_gt = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_gt, np.array(internal_calibration, dtype='float32'))
+                    # print(f"R_gt: {R_gt}, t_gt: {t_gt}, R_gt shape: {R_gt.shape}, t_gt shape: {t_gt.shape}")
                     R_gt, _ = cv2.Rodrigues(rvec)
-                    t_gt = tvec
+                    t_gt = tvec.reshape(3, 1)
+                    # print(f"R_gt: {R_gt}, t_gt: {t_gt}, R_gt shape: {R_gt.shape}, t_gt shape: {t_gt.shape}")
+
                     t_temp = time_synchronized()
                     R_pr, t_pr = pnp(np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D_dic[mesh_num][:3, :]), axis=1)), dtype='float32'),  corners2D_pr, np.array(internal_calibration, dtype='float32'))
                     t6.append(time_synchronized() - t_temp)
