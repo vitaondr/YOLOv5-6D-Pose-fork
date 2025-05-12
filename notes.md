@@ -37,6 +37,7 @@ watch -n 0.5 "squeue | grep vitao"
 
 tail -f runs/cls_train/command1.out 
 tail -f runs/cls_train/command1_real.out 
+tail -f runs/cls_train/command1_resume.out
 
 
 ## to resume training, resume_training has to be modified and then played
