@@ -18,8 +18,10 @@ from utils.plots import plot_images, output_to_target, plot_study_txt
 from utils.torch_utils import select_device, time_synchronized
 from utils.pose_utils import box_filter, get_3D_corners, pnp, epnp, calcAngularDistance, compute_projection, compute_transformation, get_camera_intrinsic, fix_corner_order, calc_pts_diameter, MeshPly
 from utils.loss import PoseLoss
+from utils.metrics import box_iou
 import matplotlib.pyplot as plt
 from PIL import Image
+import csv
 import matplotlib.patches as patches
 
 from utils.compute_overlap import wrapper_c_min_distances # for computing ADD-S metric
@@ -92,6 +94,7 @@ def test(data, weights=None, batch_size=1,
     errs_trans           = []
     errs_angle           = []
     errs_corner2D        = []
+    ious              = []
 
 
 
@@ -276,6 +279,38 @@ def test(data, weights=None, batch_size=1,
                     testing_error_angle  += angle_dist
                     testing_error_pixel  += pixel_dist
                     testing_samples      += 1
+                    
+                    if opt.task == 'test':
+
+                        # compute IoU
+                        # Compute IoU
+                        box_gt_coords = [np.min(corners2D_gt[:, 0]), np.min(corners2D_gt[:, 1]), 
+                                         np.max(corners2D_gt[:, 0]), np.max(corners2D_gt[:, 1])]
+                        box_pr_coords = [np.min(corners2D_pr[:, 0]), np.min(corners2D_pr[:, 1]), 
+                                         np.max(corners2D_pr[:, 0]), np.max(corners2D_pr[:, 1])]
+
+                        box_gt_tensor = torch.tensor(box_gt_coords, device=device).unsqueeze(0)
+                        box_pr_tensor = torch.tensor(box_pr_coords, device=device).unsqueeze(0)
+
+                        iou = box_iou(box_gt_tensor, box_pr_tensor).item()
+                        print(f"iou: {iou}")
+                        ious.append(iou)
+
+                        results = [np.linalg.norm(t_gt), np.linalg.norm(t_pr), vertex_dist, trans_dist, angle_dist, corner_dist, iou]
+                        
+                        # Save data to CSV file
+                        csv_file_path = os.path.join(save_dir, 'test_results.csv')
+                        csv_headers = ["distance_gt", "distance_pred", "mean_vertex_dist", "trans_dist", "angle_dist", "mean_corner_dist", "iou"]
+
+                        # Check if file exists to write headers
+                        write_headers = not os.path.exists(csv_file_path)
+
+                        with open(csv_file_path, mode='a', newline='') as csv_file:
+                            writer = csv.writer(csv_file)
+                            if write_headers:
+                                writer.writerow(csv_headers)
+                            writer.writerow(results)
+
 
                     # test_plotting = False
                     # W&B logging
@@ -337,6 +372,7 @@ def test(data, weights=None, batch_size=1,
     mean_err_2d  = np.mean(errs_2d)
     mean_corner_err_2d = np.mean(errs_corner2D)
     nts = float(testing_samples)
+    mean_iou = np.mean(ious) * 100.
     
     t1 = np.array(t1)
     t2 = np.array(t2)
@@ -376,6 +412,25 @@ def test(data, weights=None, batch_size=1,
     if plots:
         if wandb and wandb.run:
             wandb.log({"Images": wandb_images})
+
+    if opt.task == 'test':
+
+        
+
+        results = [mean_corner_err_2d, px_threshold, vx_threshold, acc, acc3d, acc10cm10deg, nts, testing_error_trans / (nts + eps), testing_error_angle / (nts + eps), mean_iou]
+
+        # Save data to CSV file
+        csv_file_path = os.path.join(save_dir, 'test_summary.csv')
+        csv_headers = ["mean_corner_err_2d", "pixel_threshold", "vertex_threshold", "acc2d", "acc3d", "acc10cm10deg", "nts", "trans_error", "angle_error", "mean_iou"]
+
+        # Check if file exists to write headers
+        write_headers = not os.path.exists(csv_file_path)
+
+        with open(csv_file_path, mode='a', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            if write_headers:
+                writer.writerow(csv_headers)
+                writer.writerow(results)
 
     if not training and save_txt:
         # Save results to results.txt
