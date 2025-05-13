@@ -255,6 +255,11 @@ def test(data, weights=None, batch_size=1,
                     angle_dist   = calcAngularDistance(R_gt, R_pr)
                     errs_angle.append(angle_dist)
 
+                    # Compute z-axis rotation error 
+                    z_axis_gt = R_gt[:, 2]  # Extract z-axis from ground truth rotation matrix
+                    z_axis_pr = R_pr[:, 2]  # Extract z-axis from predicted rotation matrix
+                    z_axis_angle_error = np.arccos(np.clip(np.dot(z_axis_gt, z_axis_pr), -1.0, 1.0)) * (180.0 / np.pi)  # Angular error in degrees
+
                     # Compute pixel error
                     Rt_gt        = np.concatenate((R_gt, t_gt), axis=1)
                     Rt_pr        = np.concatenate((R_pr, t_pr), axis=1)
@@ -296,11 +301,11 @@ def test(data, weights=None, batch_size=1,
                         print(f"iou: {iou}")
                         ious.append(iou)
 
-                        results = [np.linalg.norm(t_gt), np.linalg.norm(t_pr), vertex_dist, trans_dist, angle_dist, corner_dist, iou]
+                        results = [np.linalg.norm(t_gt), np.linalg.norm(t_pr), vertex_dist, trans_dist, angle_dist, corner_dist, iou, z_axis_angle_error]
                         
                         # Save data to CSV file
                         csv_file_path = os.path.join(save_dir, 'test_results.csv')
-                        csv_headers = ["distance_gt", "distance_pred", "mean_vertex_dist", "trans_dist", "angle_dist", "mean_corner_dist", "iou"]
+                        csv_headers = ["distance_gt", "distance_pred", "mean_vertex_dist", "trans_dist", "angle_dist", "mean_corner_dist", "iou", "z_axis_angle_error"]
 
                         # Check if file exists to write headers
                         write_headers = not os.path.exists(csv_file_path)
