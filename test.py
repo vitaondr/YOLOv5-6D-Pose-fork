@@ -260,6 +260,13 @@ def test(data, weights=None, batch_size=1,
                     z_axis_pr = R_pr[:, 2]  # Extract z-axis from predicted rotation matrix
                     z_axis_angle_error = np.arccos(np.clip(np.dot(z_axis_gt, z_axis_pr), -1.0, 1.0)) * (180.0 / np.pi)  # Angular error in degrees
 
+                    # compute heading error
+                    heading_gt = np.arctan2(R_gt[1, 0], R_gt[0, 0])  # Compute heading angle from ground truth rotation matrix
+                    heading_pr = np.arctan2(R_pr[1, 0], R_pr[0, 0])  # Compute heading angle from predicted rotation matrix
+                    heading_error = np.abs(heading_gt - heading_pr)  # Absolute difference in heading angles
+                    heading_error = np.degrees(min(heading_error, 2 * np.pi - heading_error))  # Normalize to range [0, 180] in degrees
+                    
+
                     # Compute pixel error
                     Rt_gt        = np.concatenate((R_gt, t_gt), axis=1)
                     Rt_pr        = np.concatenate((R_pr, t_pr), axis=1)
@@ -301,11 +308,11 @@ def test(data, weights=None, batch_size=1,
                         print(f"iou: {iou}")
                         ious.append(iou)
 
-                        results = [np.linalg.norm(t_gt), np.linalg.norm(t_pr), vertex_dist, trans_dist, angle_dist, corner_dist, iou, z_axis_angle_error]
+                        results = [np.linalg.norm(t_gt), np.linalg.norm(t_pr), vertex_dist, trans_dist, angle_dist, corner_dist, iou, z_axis_angle_error, heading_error, diam]
                         
                         # Save data to CSV file
                         csv_file_path = os.path.join(save_dir, 'test_results.csv')
-                        csv_headers = ["distance_gt", "distance_pred", "mean_vertex_dist", "trans_dist", "angle_dist", "mean_corner_dist", "iou", "z_axis_angle_error"]
+                        csv_headers = ["distance_gt", "distance_pred", "mean_vertex_dist", "trans_dist", "angle_dist", "mean_corner_dist", "iou", "z_axis_angle_error", "heading_error", "diam"]
 
                         # Check if file exists to write headers
                         write_headers = not os.path.exists(csv_file_path)

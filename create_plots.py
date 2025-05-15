@@ -23,12 +23,21 @@ val_mean_loss_df = metric_dict['val/mean_loss']
 epoch_df = metric_dict['epoch']
 
 df_merged_val = pd.merge_asof(val_mean_loss_df, epoch_df, on="_step", direction="backward")
-df_merged_train = pd.merge_asof(train_mean_loss_df, epoch_df, on="_step", direction="nearest", tolerance=2)
+df_merged_train = pd.merge_asof(train_mean_loss_df, epoch_df, on="_step", direction="nearest")
+
+min_val_loss_epoch = df_merged_val.loc[df_merged_val['val/mean_loss'].idxmin(), 'epoch']
+print(f"Epoch with minimal val/mean_loss: {min_val_loss_epoch}")
+print(df_merged_train['train/mean_loss'][206])
+print(df_merged_train['epoch'].unique())
+print(df_merged_val['epoch'].unique())
 
 print("plotting...")
 plt.figure(figsize=(10, 5))
 plt.plot(df_merged_train['epoch'], df_merged_train['train/mean_loss'], label='train/mean_loss') 
 plt.plot(df_merged_val['epoch'], df_merged_val['val/mean_loss'], label='val/mean_loss')
+
+# Mark the epoch with minimal val/mean_loss on the plot
+plt.axvline(x=min_val_loss_epoch, color='r', linestyle='--', label=f'Min Val Loss Epoch ({min_val_loss_epoch})')
 
 plt.xlabel('Epoch')
 plt.ylabel('Mean Loss')

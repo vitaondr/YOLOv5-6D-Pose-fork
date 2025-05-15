@@ -12,7 +12,7 @@ train_metrics = ['train/obj_loss', 'train/box_loss', 'train/cls_loss',  # train 
 val_metrics = ['val/mean_corner_err_2d', 'val/acc', 'val/acc3d', 'val/acc10cm10deg', # val metrics
                          'val/obj_loss', 'val/box_loss', 'val/cls_loss','val/mean_loss', 'val/total_loss']
 
-folders = ['train, val, test']
+folders = ['train', 'val', 'x']
 
 wandb.login()
 
