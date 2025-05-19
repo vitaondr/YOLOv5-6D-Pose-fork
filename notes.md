@@ -28,6 +28,10 @@ sbatch -n1 -o train_job.stdout cls_train_real.sh
 
 squeue
 
+## cancel job
+
+scancel
+
 
 ## watch if working 
 
