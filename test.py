@@ -163,6 +163,7 @@ def test(data, weights=None, batch_size=1,
     count = 0
     batch_count = 0
     for batch_i, (img, targets, intrinsics, paths, shapes, mesh_num, rvec, tvec) in enumerate(tqdm(dataloader)):
+        tvec = tvec * 100   # fix of units not normally needed
         t = time_synchronized()
         img = img.to(device, non_blocking=True)
         img = img.float()  # uint8 to fp32

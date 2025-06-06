@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 csv_folder = "metrics"
+run_name = "exp2"
 
 train_metrics = ['train/obj_loss', 'train/box_loss', 'train/cls_loss',  # train loss
                         'x/lr0', 'x/lr1', 'x/lr2', 'train/mean_loss', 'epoch']
@@ -14,7 +15,7 @@ val_metrics = ['val/mean_corner_err_2d', 'val/acc', 'val/acc3d', 'val/acc10cm10d
 metric_dict = {}
 for metric in train_metrics + val_metrics:
    
-   df = pd.read_csv(f"{csv_folder}/{metric}.csv")
+   df = pd.read_csv(f"{csv_folder}/{run_name}/{metric}.csv")
    metric_dict[metric] = df
 
 # create plot for mean_loss
@@ -39,10 +40,11 @@ plt.plot(df_merged_val['epoch'], df_merged_val['val/mean_loss'], label='val/mean
 # Mark the epoch with minimal val/mean_loss on the plot
 plt.axvline(x=min_val_loss_epoch, color='r', linestyle='--', label=f'Min Val Loss Epoch ({min_val_loss_epoch})')
 
-plt.xlabel('Epoch')
-plt.ylabel('Mean Loss')
-plt.title('Mean Loss over Epoch')
-plt.legend()
+plt.xlabel('Epoch', fontsize=14)
+plt.ylabel('Mean Loss', fontsize=14)
+# Increase the font size of the numbers on the axis
+plt.tick_params(axis='both', which='major', labelsize=14)
+plt.legend(fontsize=14)
 plt.grid()
 
 plt.show()
