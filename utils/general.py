@@ -589,11 +589,15 @@ def retrieve_image(img, img1_shape, img0_shape, ratio_pad=None):
     
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords (xyxy) from img1_shape to img0_shape
+    # ratio_pad = ((0.5, 0.5), (0.0, 60.0))
+    print("img1_shape: ", img1_shape, "img0_shape: ", img0_shape, "ratio_pad: ", ratio_pad)
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        print("in if ", gain)
         pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
     else:
         gain = ratio_pad[0][0]
+        print("in else ", gain)
         pad = ratio_pad[1]
 
     coords[:, [0, 2, 4, 6, 8, 10, 12, 14, 16]] -= pad[0]  # x padding

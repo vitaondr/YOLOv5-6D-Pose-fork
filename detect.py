@@ -113,7 +113,7 @@ def detect(save_img=False):
             if len(det):
                 det = det.cpu()
                 # Rescale boxes from img_size to im0 size
-                scale_coords(img.shape[2:], det[:, :18], shapes[0], shapes[1])  # native-space pred
+                scale_coords(img.shape[2:], det[:, :18], shapes[0], None) # shapes[1])  # native-space pred
                 prediction_confidence = det[i, 18]
                 # box_pred = det.clone().cpu()
                 box_predn = det[0, :18].clone().cpu()
@@ -144,7 +144,7 @@ def detect(save_img=False):
 
                     # Plot projection corners
                     for edge in edges_corners:
-                        ax.plot(corn2D_pr[edge, 0], corn2D_pr[edge, 1], color='b', linewidth=0.5)
+                        ax.plot(corn2D_pr[edge, 0], corn2D_pr[edge, 1], color='b', linewidth=2)
                     ax.scatter(corners2D_pr.T[0], corners2D_pr.T[1], c=colormap, s = 10)
                     
                     min_x, min_y = np.amin(corners2D_pr.T[0]), np.amin(corners2D_pr.T[1])
@@ -157,7 +157,7 @@ def detect(save_img=False):
                         # Add the patch to the Axes
                         ax.add_patch(rect)
 
-                    ax.text(min_x, min_y-10, f"Conf: {prediction_confidence.cpu().numpy():.3f}, Rot: {euler_angles}", style='italic', bbox={'facecolor': 'blue', 'alpha': 0.5, 'pad': 10})
+                    # ax.text(min_x, min_y-10, f"Conf: {prediction_confidence.cpu().numpy():.3f}, Rot: {euler_angles}", style='italic', bbox={'facecolor': 'blue', 'alpha': 0.5, 'pad': 10})
                     filename = os.path.basename(path).split('.')[0]+" "+ str(count)+"_predicted.png"
                     file_path = os.path.join(save_dir, filename)
                     fig.savefig(file_path, dpi = 96, bbox_inches='tight', pad_inches=0)
