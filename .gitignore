@@ -148,6 +148,9 @@ celerybeat-schedule
 # dotenv
 .env
 
+# singularity images
+*.sif
+
 # virtualenv
 .venv*
 venv*/
